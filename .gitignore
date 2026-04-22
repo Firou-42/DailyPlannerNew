@@ -1,0 +1,24 @@
+# Виртуальное окружение
+venv/
+env/
+
+# Файлы среды разработки
+.idea/
+*.iml
+
+# Файлы данных пользователя
+data/*.db
+data/settings.json
+
+# Кэш Python
+__pycache__/
+*.pyc
+
+# Файлы сборки Flet
+build/
+dist/
+*.spec
+
+# Файлы операционной системы
+.DS_Store
+Thumbs.db
