@@ -2,9 +2,8 @@ import flet as ft
 from core.task_manager import TaskManager
 
 
-def build_settings_screen(page: ft.Page, tm: TaskManager = None):
+def build_settings_screen(page: ft.Page, tm: TaskManager = None, rebuild_callback=None):
     page.clean()
-    page.bgcolor = ft.Colors.GREY_100
     page.padding = 0
 
     content = ft.ListView(spacing=0, padding=0, expand=True)
@@ -37,7 +36,6 @@ def build_settings_screen(page: ft.Page, tm: TaskManager = None):
         if tm:
             theme = tm.get_setting("theme", "light")
             theme_switch.value = (theme == "dark")
-            page.theme_mode = ft.ThemeMode.DARK if theme == "dark" else ft.ThemeMode.LIGHT
 
             first_day = tm.get_setting("first_day", "monday")
             first_day_dropdown.value = "Понедельник" if first_day == "monday" else "Воскресенье"
@@ -51,20 +49,15 @@ def build_settings_screen(page: ft.Page, tm: TaskManager = None):
 
     def save_settings(e):
         if tm:
-            page.theme_mode = ft.ThemeMode.DARK if theme_switch.value else ft.ThemeMode.LIGHT
             tm.set_setting("theme", "dark" if theme_switch.value else "light")
-
-            first_day_value = "monday" if first_day_dropdown.value == "Понедельник" else "sunday"
-            tm.set_setting("first_day", first_day_value)
-
+            tm.set_setting("first_day", "monday" if first_day_dropdown.value == "Понедельник" else "sunday")
             tm.set_setting("notifications", "on" if notifications_switch.value else "off")
-
-            reminder_value = str(int(reminder_slider.value))
-            tm.set_setting("reminder_time", reminder_value)
-            reminder_slider_text.value = f"Напоминать за {reminder_value} минут до начала"
+            tm.set_setting("reminder_time", str(int(reminder_slider.value)))
 
             show_snack("Настройки сохранены")
-            page.update()
+
+            if rebuild_callback:
+                rebuild_callback()
 
     def clear_all_data(e):
         def confirm_clear(e):
@@ -75,6 +68,8 @@ def build_settings_screen(page: ft.Page, tm: TaskManager = None):
             dialog.open = False
             page.update()
             show_snack("Все данные удалены")
+            if rebuild_callback:
+                rebuild_callback()
 
         def cancel_clear(e):
             dialog.open = False
@@ -101,37 +96,39 @@ def build_settings_screen(page: ft.Page, tm: TaskManager = None):
         snack.open = True
         page.update()
 
+    is_dark = page.theme_mode == ft.ThemeMode.DARK
+
     header = ft.Container(
-        content=ft.Text("Настройки", size=28, weight=ft.FontWeight.BOLD, color=ft.Colors.BLUE_GREY_800),
+        content=ft.Text("Настройки", size=28, weight=ft.FontWeight.BOLD, color=ft.Colors.GREY_300 if is_dark else ft.Colors.BLUE_GREY_800),
         padding=ft.padding.only(left=20, top=20, right=20, bottom=15),
     )
     content.controls.append(header)
 
     content.controls.append(ft.Container(
-        content=ft.Text("Внешний вид", size=16, weight=ft.FontWeight.BOLD, color=ft.Colors.BLUE_GREY_800),
+        content=ft.Text("Внешний вид", size=16, weight=ft.FontWeight.BOLD, color=ft.Colors.GREY_300 if is_dark else ft.Colors.BLUE_GREY_800),
         padding=ft.padding.only(left=20, right=20, bottom=5),
     ))
     content.controls.append(ft.Container(content=theme_switch, padding=ft.padding.only(left=20, right=20, bottom=15)))
 
-    content.controls.append(ft.Divider(height=1, color=ft.Colors.GREY_300))
+    content.controls.append(ft.Divider(height=1, color=ft.Colors.GREY_700 if is_dark else ft.Colors.GREY_300))
 
     content.controls.append(ft.Container(
-        content=ft.Text("Календарь", size=16, weight=ft.FontWeight.BOLD, color=ft.Colors.BLUE_GREY_800),
+        content=ft.Text("Календарь", size=16, weight=ft.FontWeight.BOLD, color=ft.Colors.GREY_300 if is_dark else ft.Colors.BLUE_GREY_800),
         padding=ft.padding.only(left=20, top=15, bottom=5),
     ))
     content.controls.append(ft.Container(content=first_day_dropdown, padding=ft.padding.only(left=20, right=20, bottom=15)))
 
-    content.controls.append(ft.Divider(height=1, color=ft.Colors.GREY_300))
+    content.controls.append(ft.Divider(height=1, color=ft.Colors.GREY_700 if is_dark else ft.Colors.GREY_300))
 
     content.controls.append(ft.Container(
-        content=ft.Text("Уведомления", size=16, weight=ft.FontWeight.BOLD, color=ft.Colors.BLUE_GREY_800),
+        content=ft.Text("Уведомления", size=16, weight=ft.FontWeight.BOLD, color=ft.Colors.GREY_300 if is_dark else ft.Colors.BLUE_GREY_800),
         padding=ft.padding.only(left=20, top=15, bottom=5),
     ))
     content.controls.append(ft.Container(content=notifications_switch, padding=ft.padding.only(left=20, right=20)))
     content.controls.append(ft.Container(content=reminder_slider_text, padding=ft.padding.only(left=20, right=20, top=5)))
     content.controls.append(ft.Container(content=reminder_slider, padding=ft.padding.only(left=20, right=20, bottom=15)))
 
-    content.controls.append(ft.Divider(height=1, color=ft.Colors.GREY_300))
+    content.controls.append(ft.Divider(height=1, color=ft.Colors.GREY_700 if is_dark else ft.Colors.GREY_300))
 
     content.controls.append(ft.Container(
         content=ft.ElevatedButton(

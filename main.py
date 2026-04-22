@@ -13,11 +13,15 @@ import time as t
 
 def main(page: ft.Page):
     page.title = "Планировщик"
-    page.theme_mode = ft.ThemeMode.LIGHT
     page.padding = 0
 
     tm = TaskManager()
     current_date = date.today()
+    current_tab_index = 0
+
+    saved_theme = tm.get_setting("theme", "light")
+    page.theme_mode = ft.ThemeMode.DARK if saved_theme == "dark" else ft.ThemeMode.LIGHT
+    page.bgcolor = ft.Colors.GREY_900 if page.theme_mode == ft.ThemeMode.DARK else ft.Colors.GREY_100
 
     tm.generate_recurring_tasks()
 
@@ -75,7 +79,7 @@ def main(page: ft.Page):
 
     nav_bar = ft.NavigationBar(
         destinations=[
-            ft.NavigationBarDestination(icon=ft.Icons.HOME, label="Сегодня"),
+            ft.NavigationBarDestination(icon=ft.Icons.HOME, label="Главная"),
             ft.NavigationBarDestination(icon=ft.Icons.CALENDAR_TODAY, label="Календарь"),
             ft.NavigationBarDestination(icon=ft.Icons.ANALYTICS, label="Аналитика"),
             ft.NavigationBarDestination(icon=ft.Icons.DOWNLOAD, label="Экспорт"),
@@ -86,8 +90,6 @@ def main(page: ft.Page):
     page.navigation_bar = nav_bar
 
     page.appbar = ft.AppBar(
-        leading=ft.Icon(ft.Icons.MENU),
-        leading_width=40,
         title=ft.Text("Планировщик"),
         center_title=False,
         bgcolor=ft.Colors.BLUE_GREY,
@@ -96,38 +98,47 @@ def main(page: ft.Page):
         ],
     )
 
-    def change_tab(e):
-        index = e.control.selected_index
+    def apply_global_theme():
+        page.theme_mode = ft.ThemeMode.DARK if tm.get_setting("theme", "light") == "dark" else ft.ThemeMode.LIGHT
+        page.bgcolor = ft.Colors.GREY_900 if page.theme_mode == ft.ThemeMode.DARK else ft.Colors.GREY_100
+
+    def rebuild_current_tab():
+        nonlocal current_tab_index
         page.clean()
-        if index == 0:
-            build_main_screen(page, tm, current_date, switch_to_today)
-        elif index == 1:
+        if current_tab_index == 0:
+            build_main_screen(page, tm, current_date, switch_to_main)
+        elif current_tab_index == 1:
             build_calendar_screen(page, tm)
-        elif index == 2:
+        elif current_tab_index == 2:
             build_analytics_screen(page, tm)
-        elif index == 3:
+        elif current_tab_index == 3:
             build_export_screen(page, tm)
-        elif index == 4:
-            build_settings_screen(page, tm)
+        elif current_tab_index == 4:
+            build_settings_screen(page, tm, rebuild_current_tab)
         page.update()
 
-    def switch_to_today(new_date: date = None):
-        nonlocal current_date
+    def change_tab(e):
+        nonlocal current_tab_index
+        current_tab_index = e.control.selected_index
+        rebuild_current_tab()
+
+    def switch_to_main(new_date: date = None):
+        nonlocal current_date, current_tab_index
         if new_date:
             current_date = new_date
+        current_tab_index = 0
         nav_bar.selected_index = 0
-        page.clean()
-        build_main_screen(page, tm, current_date, switch_to_today)
-        page.update()
+        rebuild_current_tab()
 
     nav_bar.on_change = change_tab
 
     page.floating_action_button = ft.FloatingActionButton(
         icon=ft.Icons.ADD,
-        on_click=lambda e: show_add_task_dialog(page, tm, switch_to_today),
+        on_click=lambda e: show_add_task_dialog(page, tm, switch_to_main),
         bgcolor=ft.Colors.BLUE,
     )
 
-    build_main_screen(page, tm, current_date, switch_to_today)
+    rebuild_current_tab()
+
 
 ft.run(main)

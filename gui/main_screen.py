@@ -9,7 +9,6 @@ def build_main_screen(page: ft.Page, tm: TaskManager, target_date: date = None, 
         target_date = date.today()
 
     page.clean()
-    page.bgcolor = ft.Colors.GREY_100
     page.padding = 0
 
     search_field = ft.TextField(
@@ -22,7 +21,6 @@ def build_main_screen(page: ft.Page, tm: TaskManager, target_date: date = None, 
 
     header = ft.Container(
         content=ft.Column([
-            ft.Text("Планировщик", size=28, weight=ft.FontWeight.BOLD, color=ft.Colors.BLUE_GREY_800),
             search_field,
         ]),
         padding=ft.padding.only(left=20, top=20, right=20, bottom=10),
@@ -72,18 +70,18 @@ def build_main_screen(page: ft.Page, tm: TaskManager, target_date: date = None, 
         date_str = f"{target_date.day} {months[target_date.month - 1]}"
 
     date_row = ft.Row([
-        ft.Text(date_str, size=18, weight=ft.FontWeight.BOLD, color=ft.Colors.BLUE_GREY_800),
+        ft.Text(date_str, size=18, weight=ft.FontWeight.BOLD, color=ft.Colors.BLUE_GREY_800 if page.theme_mode == ft.ThemeMode.LIGHT else ft.Colors.GREY_300),
         ft.Row([
             ft.IconButton(
                 icon=ft.Icons.CHEVRON_LEFT,
                 icon_size=20,
-                icon_color=ft.Colors.GREY_600,
+                icon_color=ft.Colors.GREY_600 if page.theme_mode == ft.ThemeMode.LIGHT else ft.Colors.GREY_400,
                 on_click=lambda e: change_date(-1)
             ),
             ft.IconButton(
                 icon=ft.Icons.CHEVRON_RIGHT,
                 icon_size=20,
-                icon_color=ft.Colors.GREY_600,
+                icon_color=ft.Colors.GREY_600 if page.theme_mode == ft.ThemeMode.LIGHT else ft.Colors.GREY_400,
                 on_click=lambda e: change_date(1)
             ),
         ]),
@@ -148,7 +146,7 @@ def build_main_screen(page: ft.Page, tm: TaskManager, target_date: date = None, 
                 card = ft.Container(
                     content=ft.Row([
                         ft.Container(
-                            content=ft.Text(start_time[:5], size=14, weight=ft.FontWeight.BOLD, color=ft.Colors.GREY_700),
+                            content=ft.Text(start_time[:5], size=14, weight=ft.FontWeight.BOLD, color=ft.Colors.GREY_700 if page.theme_mode == ft.ThemeMode.LIGHT else ft.Colors.GREY_300),
                             width=55,
                         ),
                         ft.Container(width=4, height=40, border_radius=2, bgcolor=cat_color),
@@ -157,10 +155,10 @@ def build_main_screen(page: ft.Page, tm: TaskManager, target_date: date = None, 
                                 title,
                                 size=16,
                                 weight=ft.FontWeight.W_500,
-                                color=ft.Colors.GREY_500 if status == 1 else ft.Colors.BLUE_GREY_800,
+                                color=ft.Colors.GREY_500 if status == 1 else (ft.Colors.BLUE_GREY_800 if page.theme_mode == ft.ThemeMode.LIGHT else ft.Colors.GREY_300),
                             ),
                             ft.Row([
-                                ft.Text(cat_name, size=12, color=ft.Colors.GREY_600),
+                                ft.Text(cat_name, size=12, color=ft.Colors.GREY_600 if page.theme_mode == ft.ThemeMode.LIGHT else ft.Colors.GREY_400),
                                 ft.Text(" 🔄", size=12, color=ft.Colors.BLUE) if repeat_type else ft.Text(""),
                             ]),
                         ], expand=True),
@@ -173,21 +171,21 @@ def build_main_screen(page: ft.Page, tm: TaskManager, target_date: date = None, 
                         ft.IconButton(
                             icon=ft.Icons.EDIT,
                             icon_size=20,
-                            icon_color=ft.Colors.GREY_500,
+                            icon_color=ft.Colors.GREY_500 if page.theme_mode == ft.ThemeMode.LIGHT else ft.Colors.GREY_400,
                             on_click=lambda e, t=task: show_edit_task_dialog(page, tm, t, switch_callback),
                         ),
                         ft.IconButton(
                             icon=ft.Icons.DELETE_OUTLINE,
                             icon_size=20,
-                            icon_color=ft.Colors.GREY_500,
+                            icon_color=ft.Colors.GREY_500 if page.theme_mode == ft.ThemeMode.LIGHT else ft.Colors.GREY_400,
                             on_click=lambda e, tid=task_id, ttl=title: delete_task(tm, tid, ttl, page, target_date, switch_callback),
                         ),
                     ], vertical_alignment=ft.CrossAxisAlignment.CENTER),
                     padding=ft.padding.all(16),
-                    bgcolor=ft.Colors.WHITE,
+                    bgcolor=ft.Colors.WHITE if page.theme_mode == ft.ThemeMode.LIGHT else ft.Colors.GREY_800,
                     border_radius=16,
                     border=ft.border.all(2, ft.Colors.RED) if is_overdue else None,
-                    shadow=ft.BoxShadow(blur_radius=4, color=ft.Colors.GREY_300, offset=ft.Offset(0, 2)),
+                    shadow=ft.BoxShadow(blur_radius=4, color=ft.Colors.GREY_300 if page.theme_mode == ft.ThemeMode.LIGHT else ft.Colors.BLACK38, offset=ft.Offset(0, 2)),
                 )
                 tasks_column.controls.append(card)
 
