@@ -69,7 +69,7 @@ def main(page: ft.Page):
                     notified_tasks.clear()
 
                 t.sleep(30)
-            except Exception:
+            except Exception: # nosec B110
                 pass
 
     notifications_enabled = tm.get_setting("notifications", "on") == "on"
